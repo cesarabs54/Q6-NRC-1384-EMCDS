@@ -31,6 +31,25 @@ Para comprobar de forma objetiva que lo que se construye cumple lo esperado y re
 | 6 | **Auditorías** | Procesos más formales para verificar cumplimiento de estándares, normativas y procedimientos (norma ISO, requisitos de seguridad, control de cambios). Revisan el producto y también el proceso. |
 | 7 | Estándares y metodologías para medir la calidad *(propuesta)* | Base para el informe de la semana: qué estándares y metodologías se usan para diseñar la medición de la calidad (ISO/IEC 25010, CMMI, PHVA vistos en la Semana 1) y qué estándares regulan las revisiones y auditorías (IEEE 1028) y los procesos y el plan de aseguramiento de la calidad (IEEE 730). |
 | 8 | Casos prácticos de V&V y auditoría *(propuesta)* | Aplicar verificación, validación, revisión y auditoría a un mismo proyecto para ver en qué se diferencian. |
+| 9 | Métricas de aseguramiento y de nube *(propuesta)* | Medir con métricas actuales (ver la sección siguiente) y llevar la disponibilidad a la nube con SLI, SLO, presupuesto de error y señales doradas. |
+
+## 📏 Métricas de aseguramiento actualizadas
+
+La presentación reemplaza la densidad de defectos por KLOC, la tasa de detección en revisión y el MTBF aislado por métricas más usadas hoy. Toda métrica combina una forma de medición con un criterio de aceptación.
+
+| Métrica | Forma de medición | Criterio de aceptación (ejemplo) |
+|:--|:--|:--|
+| Tasa de fuga de defectos | Defectos hallados en producción / (en producción + antes de liberar) × 100 % | ≤ umbral del proyecto (p. ej. ≤ 5 %) |
+| Cobertura de pruebas | Casos o líneas cubiertas / total × 100 % | ≥ 80 % en módulos críticos |
+| Puntuación de mutación | Mutantes eliminados / mutantes generados × 100 % | ≥ 70 % (lo define el equipo) |
+| Tasa de fallos de cambio (DORA) | Despliegues que causan fallo / despliegues totales × 100 % | ≤ 15 % (lo define el equipo) |
+| MTTR | Horas totales de recuperación / n.º de incidentes | Cuanto menor, mejor; límite según el SLA |
+| Disponibilidad | MTBF / (MTBF + MTTR) × 100 % | ≥ 99,5 % en horario de atención (MediCitas) |
+| Cumplimiento de acciones de auditoría | Hallazgos cerrados / hallazgos totales × 100 % | 100 % antes de la liberación |
+
+**Métricas de nube (SRE).** Un **SLI** es lo que se mide (p. ej., % de peticiones exitosas), un **SLO** es la meta interna y un **SLA** es el compromiso contractual. El **presupuesto de error** es lo que el SLO permite fallar: con 99,5 % en 30 días corridos son 216 minutos. Las **señales doradas** son latencia, tráfico, errores y saturación.
+
+*Los umbrales son ejemplos editables, salvo cobertura (≥ 80 %), auditoría (100 %) y la meta de 99,5 % de MediCitas. El contenido de nube es propio, basado en conceptos estándar de SRE; confirmar con el docente.*
 
 ## ⚖️ Aclaración: cómo distinguir verificación de validación
 
