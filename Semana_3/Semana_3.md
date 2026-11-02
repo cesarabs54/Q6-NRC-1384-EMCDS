@@ -308,7 +308,7 @@ Plan de acción sugerido para el Ciclo 3:
 **Recursos básicos**
 
 - Escobar-Sánchez, M., & Fuertes-Díaz, W. (2015). Modelo formal de pruebas funcionales de software para alcanzar el nivel de madurez integrado 2. *Revista Facultad de Ingeniería*, 24(39), 31-42.
-- Muñoz, M., Peralta, M., & Laporte, C. Y. (2019). Análisis de las debilidades que presentan las entidades muy pequeñas al implementar el estándar ISO/IEC 29110: Una comparativa entre estado del arte y el estado de la práctica. *Revista Ibérica de Sistemas e Tecnologias de Informação*.
+- Muñoz, M., Peralta, M., & Laporte, C. Y. (2019). Análisis de las debilidades que presentan las entidades muy pequeñas al implementar el estándar ISO/IEC 29110: Una comparativa entre estado del arte y el estado de la práctica. *Revista Ibérica de Sistemas e Tecnologias de Informação*, (34), 85-96.
 - Hernández, G., Martínez, Á., Jiménez, R., & Jiménez, F. (2020). Cómo los profesionales perciben la relevancia de las métricas de productividad para un equipo ágil de desarrollo de software. *Revista Ibérica de Sistemas e Tecnologias de Informação*, 596-609.
 
 **Recurso complementario**

@@ -32,7 +32,7 @@ Responder preguntas sobre los procesos de aseguramiento de la calidad del softwa
 **Básicos**
 
 - Escobar-Sánchez, M., & Fuertes-Díaz, W. (2015). Modelo formal de pruebas funcionales de software para alcanzar el nivel de madurez integrado 2. *Revista Facultad de Ingeniería*, 24(39), 31-42. → `Semana_3_Articulos/S3 - pruebas funcionales de software.pdf`
-- Muñoz, M., Peralta, M., & Laporte, C. Y. (2019). Análisis de las debilidades que presentan las entidades muy pequeñas al implementar el estándar ISO/IEC 29110: Una comparativa entre estado del arte y el estado de la práctica. *Revista Ibérica de Sistemas e Tecnologias de Informação*. → `Semana_3_Articulos/S3 - Análisis_de_las_debilidades_qu.pdf`
+- Muñoz, M., Peralta, M., & Laporte, C. Y. (2019). Análisis de las debilidades que presentan las entidades muy pequeñas al implementar el estándar ISO/IEC 29110: Una comparativa entre estado del arte y el estado de la práctica. *Revista Ibérica de Sistemas e Tecnologias de Informação*, (34), 85-96. → `Semana_3_Articulos/S3 - Análisis_de_las_debilidades_qu.pdf`
 - Hernández, G., Martínez, Á., Jiménez, R., & Jiménez, F. (2020). Cómo los profesionales perciben la relevancia de las métricas de productividad para un equipo ágil de desarrollo de software. *Revista Ibérica de Sistemas e Tecnologias de Informação*, 596-609. *(no está en la carpeta de artículos)*
 
 **Complementario**
