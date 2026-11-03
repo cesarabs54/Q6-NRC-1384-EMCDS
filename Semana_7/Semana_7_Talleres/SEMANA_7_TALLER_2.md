@@ -66,6 +66,7 @@ crud-productos/
         │   └── acceptance/
         │       ├── AceptacionSuite.java            ← Runner Cucumber
         │       └── steps/
+        │           ├── CucumberSpringConfiguration.java ← Contexto Spring para Cucumber
         │           └── ProductoSteps.java          ← Step Definitions
         └── resources/
             └── features/
@@ -189,6 +190,36 @@ crud-productos/
                     </excludes>
                 </configuration>
             </plugin>
+
+            <!-- Surefire solo detecta *Test por defecto: se agrega *Suite para que
+                 mvn test también ejecute la suite de Cucumber (AceptacionSuite) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <includes>
+                        <include>**/*Test.java</include>
+                        <include>**/*Suite.java</include>
+                    </includes>
+                </configuration>
+            </plugin>
+
+            <!-- Cobertura de código: genera target/site/jacoco/index.html con mvn verify -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.12</version>
+                <executions>
+                    <execution>
+                        <goals><goal>prepare-agent</goal></goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>verify</phase>
+                        <goals><goal>report</goal></goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
@@ -249,10 +280,13 @@ public class Producto {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal precio;
 
+    @NotNull(message = "El stock es obligatorio")
     @Min(value = 0, message = "El stock no puede ser negativo")
     @Column(nullable = false)
     private Integer stock;
 
+    // @Builder.Default conserva el valor inicial cuando se usa el builder
+    @Builder.Default
     @Column(nullable = false)
     private Boolean activo = true;
 }
@@ -690,7 +724,7 @@ class ProductoServiceTest {
 
         // Assert
         assertThat(resultado.getId()).isEqualTo(1L);
-        assertThat(resultado.isActivo()).isTrue();
+        assertThat(resultado.getActivo()).isTrue();
         verify(repositorio, times(1)).save(any(Producto.class));
     }
 
@@ -765,7 +799,7 @@ class ProductoServiceTest {
         servicio.desactivar(3L);
 
         // Assert
-        assertThat(activo.isActivo()).isFalse();
+        assertThat(activo.getActivo()).isFalse();
         verify(repositorio).save(activo); // se persistió el cambio
     }
 
@@ -904,7 +938,9 @@ class ProductoControllerIntTest {
         mockMvc.perform(get("/api/productos"))
             .andExpect(status().isOk())              // 200
             .andExpect(jsonPath("$", hasSize(2)))
-            .andExpect(jsonPath("$[0].nombre").value("Webcam HD"));
+            // sin ORDER BY el orden no está garantizado: se compara sin importar el orden
+            .andExpect(jsonPath("$[*].nombre",
+                containsInAnyOrder("Webcam HD", "Auriculares BT")));
     }
 
     // ── GET /api/productos/{id} ──────────────────────────────────────
@@ -1024,8 +1060,6 @@ import com.uniminuto.productos.repository.ProductoRepository;
 import io.cucumber.java.Before;
 import io.cucumber.java.es.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -1042,9 +1076,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Cada método mapea una línea del .feature a código ejecutable.
  * Usa el contexto Spring real (MockMvc + BD H2) para validar
  * comportamiento observable desde perspectiva del usuario/cliente.
+ *
+ * El contexto de Spring lo arranca CucumberSpringConfiguration
+ * (@CucumberContextConfiguration); aquí solo se inyectan los beans.
  */
-@SpringBootTest
-@AutoConfigureMockMvc
 public class ProductoSteps {
 
     @Autowired private MockMvc mockMvc;
@@ -1202,7 +1237,28 @@ public class ProductoSteps {
 }
 ```
 
-### 12.3 Suite de Cucumber
+### 12.3 Configuración del contexto Spring para Cucumber
+
+**Archivo:** `src/test/java/com/uniminuto/productos/acceptance/steps/CucumberSpringConfiguration.java`
+
+`cucumber-spring` exige **una** clase con `@CucumberContextConfiguration`. Sin ella, los steps no
+reciben los beans (`@Autowired`) y la suite falla al arrancar.
+
+```java
+package com.uniminuto.productos.acceptance.steps;
+
+import io.cucumber.spring.CucumberContextConfiguration;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@CucumberContextConfiguration
+@SpringBootTest
+@AutoConfigureMockMvc
+public class CucumberSpringConfiguration {
+}
+```
+
+### 12.4 Suite de Cucumber
 
 **Archivo:** `src/test/java/com/uniminuto/productos/acceptance/AceptacionSuite.java`
 
@@ -1302,6 +1358,18 @@ target/cucumber-report.html
 > **Regla clave:** una prueba de integración que usa Mockito para el repositorio
 > es, en realidad, una prueba unitaria disfrazada. Si no hay BD real involucrada,
 > no valida la integración.
+
+---
+
+## 15. Actividades y entregable
+
+1. Ejecutar `mvn verify` y abrir `target/site/jacoco/index.html`. Registrar la cobertura de `ProductoService`.
+2. Agregar una prueba unitaria para `actualizar` con nombre sin cambios (no debe consultar duplicados).
+3. Agregar una prueba de integración: `POST` con `stock` nulo debe responder `400`.
+4. Agregar un escenario Gherkin para «actualizar el precio de un producto» con sus steps.
+5. Responder: ¿qué defecto detecta la prueba de integración que la unitaria no puede detectar?
+
+**Entregable:** proyecto con las pruebas nuevas, captura de `mvn verify` en verde y captura del reporte JaCoCo.
 
 ---
 

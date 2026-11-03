@@ -87,6 +87,23 @@ quality-testing-example/
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.2.5</version>
             </plugin>
+
+            <!-- Cobertura de código: genera target/site/jacoco/index.html con mvn verify -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.12</version>
+                <executions>
+                    <execution>
+                        <goals><goal>prepare-agent</goal></goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>verify</phase>
+                        <goals><goal>report</goal></goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 </project>
@@ -343,6 +360,7 @@ package com.example.quality.integration;
 
 import com.example.quality.model.User;
 import com.example.quality.repository.InMemoryUserRepository;
+import com.example.quality.repository.UserRepository;
 import com.example.quality.service.UserService;
 import org.junit.jupiter.api.*;
 
@@ -352,11 +370,13 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class UserServiceIntegrationTest {
 
+    private UserRepository repository;
     private UserService userService;
 
     @BeforeEach
     void setup() {
-        userService = new UserService(new InMemoryUserRepository());
+        repository = new InMemoryUserRepository();
+        userService = new UserService(repository);
     }
 
     @Test
@@ -378,6 +398,8 @@ public class UserServiceIntegrationTest {
         User u = userService.deactivateUser(2L);
 
         assertFalse(u.isActive());
+        // Se relee desde el repositorio para comprobar que el cambio quedó almacenado
+        assertFalse(repository.findById(2L).orElseThrow().isActive());
     }
 }
 ```
@@ -459,5 +481,22 @@ public class UserServiceAcceptanceTest {
 4. Crear **dos pruebas unitarias** para esa regla.
 5. Crear **una prueba de integración** que valide el flujo completo.
 6. Crear **un escenario BDD** que represente un criterio de aceptación.
+7. Ejecutar `mvn verify` y abrir `target/site/jacoco/index.html` para ver la cobertura de `UserService`.
+
+### Entregable
+
+- Proyecto Maven (o repositorio) con las pruebas nuevas.
+- Captura de `mvn test` en verde y de la cobertura de `UserService` en JaCoCo.
+- Un párrafo breve: ¿qué defecto habría detectado cada nivel de prueba (unitaria, integración, aceptación) que los otros no?
+
+### Criterios de evaluación
+
+| Criterio | Peso |
+|---|---|
+| La regla nueva está implementada y las pruebas pasan | 30 % |
+| Dos pruebas unitarias con mocks (caso válido e inválido) | 25 % |
+| Prueba de integración con repositorio real | 20 % |
+| Escenario BDD con Given–When–Then claro | 15 % |
+| Evidencia de cobertura y análisis | 10 % |
 
 ---

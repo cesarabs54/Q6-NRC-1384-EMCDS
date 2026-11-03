@@ -172,13 +172,49 @@ Es decir, el error de una persona deja un defecto en un artefacto (requisito, di
 
 | Métrica | Fórmula o forma de medición | Para qué sirve |
 |:--|:--|:--|
-| **Densidad de defectos** | Defectos / KLOC o defectos / funcionalidad | Comparar la calidad entre módulos o versiones. |
+| **Densidad de defectos** | Defectos / KLOC (miles de líneas de código) o defectos / funcionalidad. Ver la explicación más abajo. | Comparar la calidad entre módulos o versiones. |
 | **Tasa de detección** | Defectos encontrados por ciclo de prueba (o por caso ejecutado, como en el Ejercicio 2) | Evaluar la efectividad de las pruebas. |
 | **Tasa de corrección** | Tiempo promedio para resolver un defecto | Medir la capacidad de respuesta del equipo. |
 | **Reincidencia** | % de defectos reabiertos | Detectar correcciones deficientes y regresiones. |
 | **Distribución por severidad** | Cantidad (o %) de defectos por nivel | Priorizar los esfuerzos de mejora. |
 
 *La presentación rotula estas métricas como "(ISO/IEC 29110)", pero el estándar define **qué** procesos y registros se exigen, no un catálogo de métricas. Las métricas que aquí se usan provienen de los indicadores del modelo de Escobar-Sánchez y Fuertes-Díaz (incidentes por funcionalidad, por caso ejecutado y casos por funcionalidad). Conviene aclararlo en clase.*
+
+### Densidad de defectos: defectos / KLOC o defectos / funcionalidad
+
+La **densidad de defectos** relaciona la cantidad de defectos con el tamaño del producto, para poder comparar módulos, versiones o proyectos de distinto tamaño. Tiene dos formas de cálculo según cómo se mida ese tamaño:
+
+| Forma | Fórmula | Cuándo usarla | Ejemplo |
+|:--|:--|:--|:--|
+| **Defectos / KLOC** | Defectos encontrados ÷ (líneas de código ÷ 1000) | Cuando el tamaño se mide en código (KLOC = miles de líneas). Útil para comparar módulos o versiones del mismo producto. | 30 defectos en 12 000 líneas: 30 ÷ 12 = **2,5 defectos/KLOC**. |
+| **Defectos / funcionalidad** | Defectos encontrados ÷ funcionalidades probadas | Cuando el tamaño se mide en funcionalidades, como en el modelo de pruebas funcionales (caja negra) del caso de estudio. | Ciclo 1: 59 incidentes ÷ 20 funcionalidades = **2,95**. Ciclo 2: 21 ÷ 8 = **2,63**. |
+
+Cómo leerla:
+
+- **Menor es mejor,** pero solo si se compara con el mismo criterio: la misma definición de defecto, la misma forma de contar líneas o funcionalidades y alcances parecidos.
+- **No mezcle las dos formas** en una misma comparación: defectos/KLOC y defectos/funcionalidad tienen escalas distintas.
+- **Limitaciones del KLOC:** depende del lenguaje, del estilo de programación y de si se cuentan comentarios, líneas en blanco o código generado. No sirve cuando se prueba sin acceder al código (pruebas funcionales).
+- **Limitaciones de la funcionalidad:** no todas pesan igual (una autenticación multifactor no se compara con una preferencia de perfil). Conviene complementar con la distribución por severidad o ponderar por criticidad.
+- **Apoyo para el foro:** muestra por qué se necesitan criterios comunes (estándares). El mismo producto puede verse mejor o peor según cómo se defina el tamaño.
+
+**¿Está obsoleto el KLOC?** No, pero es una medida de tamaño muy criticada y hoy se usa con cuidado. Sigue vigente en código C/C++ de sistemas embebidos, automotriz o aeroespacial y en modelos históricos como COCOMO; se usa menos en equipos ágiles. Sus críticas principales: depende del lenguaje, premia el código verboso, cambia según cómo se cuenten comentarios y código generado, y solo se conoce cuando el código ya existe (no sirve para estimar ni para pruebas de caja negra). Con código generado por herramientas o por IA, las líneas dicen aún menos del esfuerzo o del valor.
+
+**Alternativas para medir el tamaño (el denominador)**
+
+| Alternativa | Qué mide | Comentario |
+|:--|:--|:--|
+| **Puntos de función** (IFPUG, ISO/IEC 20926; COSMIC, ISO/IEC 19761) | Tamaño funcional desde el punto de vista del usuario | Independiente del lenguaje y calculable desde los requisitos. Es la alternativa estándar más conocida, pero exige formación y esfuerzo. |
+| **Funcionalidades o requisitos** | Cantidad de funcionalidades probadas | La usa el caso de estudio de la semana. Es simple, pero las funcionalidades no pesan igual. |
+| **Historias de usuario o *story points*** | Tamaño relativo estimado por el equipo | Habitual en ágil, pero subjetivo y no comparable entre equipos. |
+| **Casos de uso o casos de prueba** | Alcance probado | Da la tasa de detección (defectos por caso ejecutado), como en el Ejercicio 2. |
+| **Esfuerzo (persona-hora)** | Costo del trabajo | Defectos por persona-hora o por persona-mes. |
+| **Módulos, clases o componentes** | Unidades de diseño | Útil para comparar partes de un mismo sistema. |
+
+**Complementos a la métrica en sí:** defectos escapados a producción frente al total detectado (efectividad de eliminación de defectos, DRE); densidad ponderada por severidad; reincidencia y tasa de regresión; métricas de entrega DORA (tasa de fallos por cambio, tiempo de restauración); complejidad ciclomática y deuda técnica para la calidad del código.
+
+*Esta comparación proviene de conocimiento general y no de los recursos de la semana; si se cita en el foro, conviene respaldarla con una fuente.*
+
+*El rango de referencia por KLOC varía mucho según el dominio y la fuente, por eso aquí no se fija un valor "bueno". El ejemplo de 30 defectos en 12 000 líneas es ilustrativo, no proviene de los recursos de la semana.*
 
 ### Cómo usa ISO/IEC 29110 la caracterización de defectos
 
@@ -384,7 +420,8 @@ Como práctica previa al foro, con un proyecto conocido por el grupo:
 - **Prioridad:** orden de corrección, que combina severidad e impacto en el negocio.
 - **Regresión:** fallo nuevo en una funcionalidad previa causado por un cambio en el código.
 - **Prueba funcional:** prueba de caja negra que contrasta el comportamiento del software con la especificación.
-- **Densidad de defectos:** defectos por KLOC o por funcionalidad.
+- **Densidad de defectos:** defectos por KLOC (miles de líneas de código) o por funcionalidad probada.
+- **KLOC:** mil líneas de código fuente, unidad de tamaño usada para normalizar los defectos.
 - **Entidad Muy Pequeña (EMP o VSE):** organización o proyecto de hasta 25 personas dedicadas al desarrollo de software.
 - **ISO/IEC 29110:** serie de estándares de ingeniería de software para EMPs; su perfil básico tiene los procesos de Gestión del Proyecto e Implementación del Software.
 - **TMMi:** modelo de madurez de pruebas de software, de cinco niveles; complementa a CMMI.

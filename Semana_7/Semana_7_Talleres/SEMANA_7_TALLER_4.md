@@ -268,11 +268,10 @@ public class UserService {
         User existing = userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
 
-        if (name != null) {
-            if (name.isBlank())
-                throw new IllegalArgumentException("El nombre no puede estar vacío");
-            existing.setName(name);
-        }
+        // 1) Validar TODO antes de modificar el objeto: si algo falla,
+        //    el usuario almacenado no debe quedar a medio actualizar.
+        if (name != null && name.isBlank())
+            throw new IllegalArgumentException("El nombre no puede estar vacío");
 
         if (email != null) {
             if (email.isBlank())
@@ -282,9 +281,11 @@ public class UserService {
                 if (!other.getId().equals(id))
                     throw new IllegalArgumentException("El email ya está registrado por otro usuario");
             });
-
-            existing.setEmail(email);
         }
+
+        // 2) Aplicar los cambios
+        if (name != null) existing.setName(name);
+        if (email != null) existing.setEmail(email);
 
         return userRepository.save(existing);
     }
@@ -384,6 +385,21 @@ public class UserServiceUnitTest {
         );
 
         assertEquals("Usuario no encontrado", ex.getMessage());
+    }
+
+    @Test
+    void updateUser_doesNotChangeName_whenEmailIsTakenByAnotherUser() {
+        User existing = new User(1L, "Original", "original@example.com");
+        when(repo.findById(1L)).thenReturn(Optional.of(existing));
+        when(repo.findByEmail("ana@example.com"))
+                .thenReturn(Optional.of(new User(2L, "Ana", "ana@example.com")));
+
+        assertThrows(IllegalArgumentException.class,
+                () -> service.updateUser(1L, "NombreNuevo", "ana@example.com"));
+
+        // El nombre no debe haber cambiado porque la validación falló
+        assertEquals("Original", existing.getName());
+        verify(repo, never()).save(any(User.class));
     }
 }
 ```
@@ -528,5 +544,20 @@ public class UserServiceAcceptanceTest {
 | **Unitarias**         | Lógica aislada | Mocks (Mockito) | Bajo | Validar email único |
 | **Integración**       | Componentes reales | Servicio + Repo real | Medio | CRUD en memoria |
 | **Aceptación (BDD)**  | Criterios de usuario | Sistema funcional | Alto | Escenarios Given–When–Then |
+
+> **Nota:** en este proyecto las pruebas de «aceptación» ejercitan el servicio directamente, igual que las de integración,
+> pero se redactan desde el criterio del usuario (Given–When–Then). En el Taller 2 se llevan a una API REST real con Cucumber.
+
+---
+
+# Actividades y entregable
+
+1. Ejecutar `mvn test` y verificar que las 4 pruebas unitarias, 2 de integración y 2 de aceptación pasan.
+2. Revisar `updateUser`: el método original cambiaba el nombre antes de validar el email. Explica por qué eso era un defecto
+   y qué prueba lo detecta (`updateUser_doesNotChangeName_whenEmailIsTakenByAnotherUser`).
+3. Agregar la regla «el email debe contener `@`» con dos pruebas unitarias, una de integración y un escenario BDD.
+4. Agregar una prueba de integración para `updateUser` que cambie solo el email y confirme que el nombre se conserva.
+
+**Entregable:** proyecto con las pruebas nuevas, captura de `mvn test` en verde y el párrafo de la actividad 2.
 
 ---

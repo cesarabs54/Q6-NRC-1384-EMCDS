@@ -4,6 +4,23 @@
 
 ---
 
+## Requisitos previos
+
+| Herramienta | Notas |
+|---|---|
+| Java JDK 17+ y Maven o Gradle | `java -version`, `mvn -version` |
+| **Docker en ejecución** | Testcontainers necesita un runtime Docker. En Windows: Docker Desktop con WSL2 activo. Verifica con `docker ps`. |
+| Conexión a internet | La primera ejecución descarga imágenes (`postgres:17`, `redis:7`, Ryuk). |
+
+> **Docker reciente (Engine 29+):** si aparece `Could not find a valid Docker environment`, el cliente de Testcontainers es demasiado antiguo
+> para la API de Docker. Spring Boot 3.2.x trae Testcontainers 1.19.x; súbelo con
+> `<testcontainers.version>1.21.4</testcontainers.version>` en las `<properties>` del `pom.xml` (verificado con Docker 29.9.2).
+>
+> **Versiones:** los ejemplos usan Testcontainers `1.20.4` (diciembre de 2024). Antes de la clase revisa la versión vigente
+> en [java.testcontainers.org](https://java.testcontainers.org/) y la compatibilidad con tu versión de Spring Boot (3.1+ para `@ServiceConnection`).
+
+---
+
 ## ¿Por qué Testcontainers?
 
 Las pruebas de integración tradicionales tienen tres problemas comunes:
@@ -211,10 +228,17 @@ INSERT INTO items(id, code, name) VALUES(?,?,?) ON CONFLICT DO NOTHING;
 
 La solución es usar PostgreSQL real en las pruebas también.
 
+> **Importante:** `@DataJpaTest` reemplaza por defecto cualquier `DataSource` por una base de datos embebida (H2).
+> Para que se use el PostgreSQL del contenedor hay que desactivar ese reemplazo con
+> `@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)`
+> (import: `org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase`).
+> Sin esta anotación la prueba pasa, pero contra H2, que es justo lo que se quiere evitar.
+
 ### Versión con `@DynamicPropertySource`
 
 ```java
 @DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE) // no sustituir PostgreSQL por H2
 @Testcontainers
 class BookmarkRepositoryTest {
 
@@ -270,6 +294,7 @@ testImplementation 'org.springframework.boot:spring-boot-testcontainers'
 
 ```java
 @DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
 class BookmarkRepositoryTest {
 
@@ -315,18 +340,41 @@ class TestcontainersConfiguration {
 
 ```java
 @DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(TestcontainersConfiguration.class)   // Importa el contenedor centralizado
 class BookmarkRepositoryTest {
 
     @Autowired
     BookmarkRepository bookmarkRepository;
 
+    @Autowired
+    JdbcTemplate jdbcTemplate;   // import: org.springframework.jdbc.core.JdbcTemplate
+
     @Test
     void shouldFindBookmarkById() {
         // test sin ninguna declaración de contenedor
     }
+
+    @Test
+    void shouldRunAgainstRealPostgres() {
+        // Confirma que la prueba corre contra PostgreSQL y no contra H2
+        String version = jdbcTemplate.queryForObject("select version()", String.class);
+        assertThat(version).containsIgnoringCase("PostgreSQL");
+    }
+
+    @Test
+    void shouldSupportOnConflictDoNothing() {
+        // Sintaxis válida en PostgreSQL; en H2 falla con error de sintaxis
+        jdbcTemplate.update("INSERT INTO bookmarks(title, url, created_at) VALUES ('a','b', now())");
+        int rows = jdbcTemplate.update(
+            "INSERT INTO bookmarks(id, title, url, created_at) VALUES (1000,'c','d', now()) ON CONFLICT DO NOTHING");
+        assertThat(rows).isEqualTo(1);
+    }
 }
 ```
+
+Las dos pruebas nuevas cubren la actividad 3: `shouldRunAgainstRealPostgres` demuestra que el motor es PostgreSQL y
+`shouldSupportOnConflictDoNothing` usa una sintaxis que H2 no acepta.
 
 ---
 
@@ -361,10 +409,21 @@ class BookmarkControllerTest {
         assertThat(bookmarks[0].getTitle()).isEqualTo("IntelliJ IDEA Blog"); // más reciente primero
         assertThat(bookmarks[1].getTitle()).isEqualTo("JetBrains Blog");
     }
+
+    @Test
+    void shouldCreateBookmark() {
+        var request = new BookmarkController.CreateBookmarkRequest("Spring", "https://spring.io");
+
+        var response = restTemplate.postForEntity("/api/bookmarks", request, Bookmark.class);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(201);
+        assertThat(bookmarkRepository.count()).isEqualTo(1);   // el registro quedó en PostgreSQL
+    }
 }
 ```
 
 El endpoint `GET /api/bookmarks` devuelve los bookmarks ordenados del más nuevo al más antiguo. La prueba valida ese orden explícitamente.
+`shouldCreateBookmark` cubre la actividad 5: comprueba el código `201` y que el registro exista en la base.
 
 ---
 
@@ -394,6 +453,19 @@ Proyecto Spring Boot
 | `@ServiceConnection` en lugar de `@DynamicPropertySource` | Menos código, más mantenible (Spring Boot 3.1+) |
 | `TestcontainersConfiguration` centralizada | No repites la declaración del contenedor en cada clase |
 | `@BeforeEach deleteAllInBatch()` | Aislamiento de datos entre pruebas dentro de la clase |
+
+---
+
+## Actividades y entregable
+
+1. Clonar el proyecto `bookmarks` (rama `flyway`) y ejecutar `docker ps` para confirmar que Docker responde.
+2. Implementar `BookmarkRepositoryTest` con `@ServiceConnection` y `@AutoConfigureTestDatabase(replace = NONE)`. Confirmar en el log que se levanta `postgres:17`.
+3. Escribir una consulta con `ON CONFLICT DO NOTHING` y comprobar que pasa con PostgreSQL pero falla con H2.
+4. Centralizar el contenedor en `TestcontainersConfiguration` y usarlo en el repositorio y en el controlador.
+5. Agregar una prueba `POST /api/bookmarks` que valide el código `201` y que el registro exista en la base.
+6. Responder: ¿en qué casos sigue siendo preferible H2 sobre Testcontainers? (velocidad, CI sin Docker, etc.)
+
+**Entregable:** repositorio con las pruebas, captura de `mvn test` en verde y captura del log donde se vea el contenedor de PostgreSQL.
 
 ---
 

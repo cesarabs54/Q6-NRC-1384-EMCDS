@@ -1,4 +1,3 @@
-```markdown
 # Guía paso a paso: Escalar el proyecto a Cucumber y API REST (Spring Boot)
 
 Proyecto base: `user-quality-demo` (gestión de usuarios + pruebas unitarias, integración y aceptación).
@@ -10,7 +9,7 @@ Proyecto base: `user-quality-demo` (gestión de usuarios + pruebas unitarias, in
 1. Extender a API REST con Spring Boot  
    1.1. Actualizar `pom.xml`  
    1.2. Crear clase principal `UserQualityDemoApplication`  
-   1.3. Crear controlador REST `UserController`  
+   1.3. Ajustar `User`, crear configuración, controlador REST y manejo de errores  
    1.4. Probar la API (manual y con tests)  
 
 2. Añadir Cucumber para pruebas de aceptación BDD  
@@ -111,17 +110,50 @@ public class UserQualityDemoApplication {
 
 ---
 
-### 1.3. Controlador REST `UserController`
+### 1.3. Ajustes a `User`, configuración, controlador REST y manejo de errores
 
-Usaremos el `UserService` y el `InMemoryUserRepository` como backend simple.
+**a) Constructor vacío en `User`.** Jackson necesita un constructor sin argumentos para convertir el JSON del
+`@RequestBody` en un objeto. Agrega a la clase `User` del Taller 4:
+
+```java
+public User() { }
+```
+
+**b) Configuración de beans.** `UserService` es una clase Java simple (sin `@Service`), así que la registramos como bean
+para poder inyectarla en el controlador:
+
+```java
+// src/main/java/com/example/usermanagement/config/AppConfig.java
+package com.example.usermanagement.config;
+
+import com.example.usermanagement.repository.InMemoryUserRepository;
+import com.example.usermanagement.repository.UserRepository;
+import com.example.usermanagement.service.UserService;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class AppConfig {
+
+    @Bean
+    public UserRepository userRepository() {
+        return new InMemoryUserRepository();
+    }
+
+    @Bean
+    public UserService userService(UserRepository userRepository) {
+        return new UserService(userRepository);
+    }
+}
+```
+
+**c) Controlador REST `UserController`.**
 
 ```java
 // src/main/java/com/example/usermanagement/api/UserController.java
 package com.example.usermanagement.api;
 
 import com.example.usermanagement.model.User;
-import com.example.usermanagement.repository.InMemoryUserRepository;
-import com.example.usermanagement.repository.UserRepository;
 import com.example.usermanagement.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -138,10 +170,9 @@ public class UserController {
 
     private final UserService userService;
 
-    // Para simplificar, instanciamos el repositorio en memoria aquí.
-    public UserController() {
-        UserRepository repo = new InMemoryUserRepository();
-        this.userService = new UserService(repo);
+    // El servicio se inyecta (ver AppConfig): el controlador no crea sus dependencias.
+    public UserController(UserService userService) {
+        this.userService = userService;
     }
 
     @PostMapping
@@ -170,7 +201,32 @@ public class UserController {
 }
 ```
 
-> Para producción, lo ideal sería usar inyección de dependencias con `@Bean` o `@Service` y un repositorio real (JPA, etc.). Aquí mantenemos la simplicidad didáctica.
+**d) Manejo de errores.** Sin esto, las `IllegalArgumentException` del servicio se convierten en `500 Internal Server Error`.
+Las reglas de negocio incumplidas son un error del cliente, por lo que se responde `400 Bad Request`:
+
+```java
+// src/main/java/com/example/usermanagement/api/ApiExceptionHandler.java
+package com.example.usermanagement.api;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.Map;
+
+@RestControllerAdvice
+public class ApiExceptionHandler {
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> handleBadRequest(IllegalArgumentException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("error", ex.getMessage()));
+    }
+}
+```
+
+> Para producción, lo ideal sería usar un repositorio real (JPA, etc.) y códigos más específicos (`404`, `409`). Aquí mantenemos la simplicidad didáctica.
 
 ---
 
@@ -212,7 +268,9 @@ curl -X PUT http://localhost:8080/api/users/1 \
 curl -X DELETE http://localhost:8080/api/users/1
 ```
 
-En clase puedes conectar esto con las pruebas de integración: ahora el servicio se expone como API y se puede probar end-to-end.
+Intenta crear dos veces el mismo email: la segunda llamada debe responder `400` con `{"error":"El email ya está registrado"}`.
+
+En clase puedes conectar esto con las pruebas de integración: ahora el servicio se expone como API y se puede probar con `MockMvc` o con un cliente HTTP (actividad 4).
 
 ---
 
@@ -237,6 +295,13 @@ Añade estas dependencias dentro de `<dependencies>`:
     <groupId>io.cucumber</groupId>
     <artifactId>cucumber-junit-platform-engine</artifactId>
     <version>7.15.0</version>
+    <scope>test</scope>
+</dependency>
+
+<!-- Permite declarar la suite con @Suite (versión gestionada por Spring Boot) -->
+<dependency>
+    <groupId>org.junit.platform</groupId>
+    <artifactId>junit-platform-suite</artifactId>
     <scope>test</scope>
 </dependency>
 ```
@@ -279,13 +344,22 @@ Feature: Gestión de usuarios
 // src/test/java/com/example/usermanagement/cucumber/CucumberTest.java
 package com.example.usermanagement.cucumber;
 
-import io.cucumber.junit.platform.engine.Cucumber;
+import org.junit.platform.suite.api.ConfigurationParameter;
+import org.junit.platform.suite.api.IncludeEngines;
+import org.junit.platform.suite.api.SelectClasspathResource;
+import org.junit.platform.suite.api.Suite;
+
+import static io.cucumber.junit.platform.engine.Constants.GLUE_PROPERTY_NAME;
 
 /**
- * Runner de Cucumber usando JUnit Platform.
- * Al ejecutar mvn test, Cucumber buscará los .feature y steps.
+ * Runner de Cucumber usando JUnit Platform Suite.
+ * Al ejecutar mvn test, Cucumber buscará los .feature en src/test/resources/features
+ * y los steps en el paquete indicado en el glue.
  */
-@Cucumber
+@Suite
+@IncludeEngines("cucumber")
+@SelectClasspathResource("features")
+@ConfigurationParameter(key = GLUE_PROPERTY_NAME, value = "com.example.usermanagement.cucumber")
 public class CucumberTest {
     // No necesita código adicional.
 }
@@ -348,6 +422,9 @@ public class UserSteps {
 ```
 
 > Aquí se ve claramente el puente entre **escenarios de negocio** y **lógica de servicio**. Es un excelente punto para discutir trazabilidad entre requisitos y pruebas.
+>
+> **Alcance:** estos steps llaman directamente a `UserService`; no pasan por HTTP. Validan la regla de negocio, no la API.
+> Para una aceptación sobre la API real, los steps deberían usar `MockMvc` (ver Taller 2) o un cliente HTTP.
 
 ---
 
@@ -382,4 +459,15 @@ Con este archivo `.md` puedes:
 - Usarlo como base para una práctica donde los estudiantes:
     - Extienden nuevos endpoints.
     - Añaden nuevos escenarios Cucumber para otras reglas de negocio.
-```
+
+---
+
+## Actividades y entregable
+
+1. Aplicar la guía sobre el proyecto `user-quality-demo` del Taller 4 y verificar que `mvn test` pasa.
+2. Probar la API con `curl` o Postman: crear un usuario, intentar crearlo de nuevo y comprobar que responde `400` con el mensaje de error.
+3. Agregar un escenario Cucumber para «actualizar un usuario con el email de otro usuario».
+4. Agregar una prueba con `MockMvc` (`@SpringBootTest` + `@AutoConfigureMockMvc`) que valide el código HTTP del `POST /api/users`.
+5. Responder: ¿qué diferencia hay entre los steps actuales (que llaman a `UserService`) y una prueba de aceptación sobre la API?
+
+**Entregable:** proyecto con el escenario y la prueba nuevos, captura de `mvn test` en verde y la respuesta a la pregunta 5.

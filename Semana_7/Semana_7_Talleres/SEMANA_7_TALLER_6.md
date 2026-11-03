@@ -1,4 +1,3 @@
-```markdown
 # Proyecto de ejemplo: Gestión de Ventas y Pruebas de Calidad  
 Curso de posgrado: **Estándares y Métricas de Calidad** – Semana 7
 
@@ -118,6 +117,9 @@ public class Venta {
     private String cliente;
     private String producto;
     private int cantidad;
+    // NOTA: se usa double para simplificar el ejemplo. En un sistema real con dinero
+    // se debe usar BigDecimal (double acumula errores de redondeo); por eso las
+    // aserciones usan una tolerancia (delta = 0.001).
     private double precioUnitario;
     private double total;
 
@@ -475,6 +477,9 @@ public class VentaService {
             throw new IllegalArgumentException("El precio unitario debe ser mayor que cero");
         }
 
+        ventaRepository.buscarPorId(venta.getIdVenta())
+                .orElseThrow(() -> new IllegalArgumentException("La venta no existe"));
+
         double total = venta.getCantidad() * venta.getPrecioUnitario();
         venta.setTotal(total);
 
@@ -648,6 +653,30 @@ public class VentaServiceTest {
     }
 
     @Test
+    void registrarVenta_conPrecioNoValido_lanzaExcepcion() {
+        // Given: precio unitario inválido (negativo)
+        LocalDate fecha = LocalDate.now();
+
+        // When & Then: se rechaza y no se toca el repositorio
+        assertThrows(IllegalArgumentException.class, () ->
+                ventaService.registrarVenta(fecha, "Cliente B2", "Producto Y2", 2, -5.0));
+
+        verify(ventaRepository, never()).guardar(any(Venta.class));
+    }
+
+    @Test
+    void actualizarVenta_siNoExiste_lanzaExcepcion() {
+        // Given: el repositorio no encuentra la venta
+        Venta inexistente = new Venta(99, LocalDate.now(), "Cliente", "Producto", 1, 10.0, 10.0);
+        when(ventaRepository.buscarPorId(99)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThrows(IllegalArgumentException.class,
+                () -> ventaService.actualizarVenta(inexistente));
+        verify(ventaRepository, never()).actualizar(any(Venta.class));
+    }
+
+    @Test
     void obtenerVentaPorId_devuelveVentaCuandoExiste() {
         // Given: una venta existente en el repositorio (simulada)
         Venta venta = new Venta(1, LocalDate.now(), "Cliente C",
@@ -723,6 +752,9 @@ public class VentaServiceIntegrationTest {
         try (Connection conn = DriverManager.getConnection(url, user, password);
              Statement stmt = conn.createStatement()) {
 
+            // La BD H2 persiste mientras viva la JVM (DB_CLOSE_DELAY=-1): se recrea la tabla
+            // antes de cada prueba para que cada una parta de un estado limpio.
+            stmt.execute("DROP TABLE IF EXISTS ventas");
             stmt.execute("""
                 CREATE TABLE ventas (
                     id_venta INT AUTO_INCREMENT PRIMARY KEY,
@@ -863,6 +895,9 @@ public class VentaAcceptanceTest {
         try (Connection conn = DriverManager.getConnection(url, user, password);
              Statement stmt = conn.createStatement()) {
 
+            // La BD H2 persiste mientras viva la JVM (DB_CLOSE_DELAY=-1): se recrea la tabla
+            // antes de cada prueba para que cada una parta de un estado limpio.
+            stmt.execute("DROP TABLE IF EXISTS ventas");
             stmt.execute("""
                 CREATE TABLE ventas (
                     id_venta INT AUTO_INCREMENT PRIMARY KEY,
@@ -905,6 +940,17 @@ public class VentaAcceptanceTest {
         // Given: existe una venta válida con cantidad y precio positivos.
         // When: el usuario registra la venta.
         // Then: el sistema calcula correctamente el total y la venta se refleja en los reportes.
+    }
+
+    @Test
+    void givenVentaConPrecioInvalido_whenSeIntentaRegistrar_thenElSistemaLaRechaza() {
+        // Given: una venta con precio unitario negativo
+        // When: el usuario intenta registrarla
+        // Then: el sistema la rechaza y no queda registrada
+        assertThrows(IllegalArgumentException.class, () ->
+                ventaService.registrarVenta(LocalDate.of(2024, 3, 3), "Cliente BDD 3", "Producto BDD 3", 2, -1.0));
+
+        assertTrue(ventaService.listarVentas().isEmpty());
     }
 
     @Test
@@ -980,5 +1026,21 @@ public class VentaAcceptanceTest {
 | Integración         | Verificar interacción entre componentes                     | Servicio + repositorio + BD       | BD H2 en memoria, JDBC real          | Media                  | `VentaServiceIntegrationTest` (registro y actualización)      |
 | Aceptación (BDD)    | Validar criterios de usuario en lenguaje Given–When–Then   | Flujo funcional completo          | Servicio + repositorio + BD H2       | Menor que unitarias    | `VentaAcceptanceTest` (registro válido, rechazo de venta inválida) |
 
+> **Nota:** aquí la aceptación ejercita el servicio y la BD, pero no una interfaz de usuario ni una API. Se distingue de la
+> integración por estar redactada desde el criterio del usuario (Given–When–Then). En el Taller 2 se llega a un nivel más
+> cercano al usuario con una API REST y Cucumber.
+
 ---
-```
+
+## 9. Actividades y entregable
+
+1. Crear un proyecto Maven con las clases del taller y agregar las dependencias de JUnit 5, Mockito y H2.
+2. Ejecutar `mvn test` y comprobar que todas las pruebas pasan. Explica por qué la tabla se recrea en cada `@BeforeEach`.
+3. Ejecutar `bd_ventas.sql` en MySQL (XAMPP) y correr `Main`. Compara el comportamiento con H2: ¿qué diferencias de SQL encuentras?
+4. Agregar la regla «el cliente no puede estar vacío» con una prueba unitaria, una de integración y un escenario BDD.
+5. Cambiar `double` por `BigDecimal` en `precioUnitario` y `total`, y ajustar las pruebas.
+6. (Opcional) Agregar el plugin JaCoCo (ver Taller 1) y reportar la cobertura de `VentaService`.
+
+**Entregable:** proyecto con las pruebas nuevas, captura de `mvn test` en verde y una tabla con las diferencias H2 vs. MySQL.
+
+---
