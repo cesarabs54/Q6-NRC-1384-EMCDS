@@ -376,7 +376,7 @@ Redacta 4 a 6 decisiones, cada una con "decisión → motivo → efecto en la ca
 
 ## 3.12 Cómo el modelo integra el aseguramiento de la calidad
 
-Resume en una tabla, para que el docente lo vea de un vistazo (corresponde al criterio de 1,4 puntos de la rúbrica):
+Resume en una tabla, para que el docente lo vea de un vistazo (corresponde al criterio de integración de calidad, de 1,5 puntos en la rúbrica):
 
 | Mecanismo | Dónde está en el modelo |
 |:--|:--|

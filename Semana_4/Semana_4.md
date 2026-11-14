@@ -34,7 +34,7 @@ Requisitos claros → menos defectos → menor costo de calidad → mayor rentab
 
 - **Densidad de defectos por KLOC.** La Semana 2 la reemplaza por métricas más actuales (tasa de fuga, cobertura, DORA), pero las presentaciones de esta semana y del caso CMMI la siguen usando. Presentarla como métrica clásica, útil para comparar, y no como la única.
 - **UML en la actividad.** La actividad pide diagrama de casos de uso y diagrama de clases conceptual, pero las presentaciones desarrollan el modelo procedimental y no enseñan UML. Se asume UML como conocimiento previo, o el docente lo refuerza en clase *(propuesta)*.
-- **Ciclo de vida.** La actividad pide justificar un modelo de ciclo de vida. La Semana 5 trae un anexo de métricas por tipo de ciclo (cascada, iterativo, evolutivo, ágil e híbrido) que puede servir de apoyo.
+- **Ciclo de vida.** La actividad pide ubicar puntos de control de calidad en el ciclo de vida; conviene justificar el modelo elegido. La Semana 5 trae un anexo de métricas por tipo de ciclo (cascada, iterativo, evolutivo, ágil e híbrido) que puede servir de apoyo.
 
 ## 💬 Preguntas para detonar la discusión
 
@@ -46,9 +46,9 @@ Requisitos claros → menos defectos → menor costo de calidad → mayor rentab
 
 ## 📝 Actividad evaluable de la semana
 
-**Modelado digital UML. Sistema de software con integración del aseguramiento de la calidad** (código EDSTV011_A4, versión V3 en [EDSTV011_A4_V3.pdf](Semana_4_Actividad/EDSTV011_A4_V3.pdf)). Actividad **individual**: 5 horas de desarrollo y 6 horas de consulta de materiales. Escenario: lo asigna el docente; si no, puede usarse el sistema de préstamos y reservas de una biblioteca universitaria con dos sedes.
+**Modelado digital. Sistema de software con integración del aseguramiento de la calidad** (código EDSTV011_A4, PDF [EDSTV011_A4_V2.pdf](Semana_4_Actividad/EDSTV011_A4_V2.pdf)). Actividad **individual**: 5 horas de desarrollo y 6 horas de consulta de materiales. Escenario: lo asigna el docente; si no, puede usarse el escenario propuesto de MediCitas ([documento](Semana_4_Actividad/Semana_4_Actividad_escenario_propuesto_MediCitas.docx) y [esqueleto](Semana_4_Actividad/Semana_4_Actividad_escenario_propuesto_MediCitas.md)), el sistema de préstamos y reservas de una biblioteca universitaria con dos sedes o un escenario que el estudiante seleccione.
 
-**El modelo debe contener:** especificación estructurada desde la perspectiva del aseguramiento de la calidad, diagrama de casos de uso, diagrama de clases conceptual, requisitos funcionales y no funcionales, criterios de aceptación, trazabilidad básica requisito-caso de prueba y puntos de control de calidad en el ciclo de vida (con el modelo de ciclo de vida justificado).
+**El modelo debe contener:** especificación estructurada desde la perspectiva del aseguramiento de la calidad, diagrama de casos de uso, diagrama de clases conceptual, requisitos funcionales y no funcionales, criterios de aceptación, trazabilidad básica requisito-caso de prueba y puntos de control de calidad en el ciclo de vida del software.
 
 **El documento debe contener:** portada, introducción, desarrollo, planeación, modelado (imágenes PNG o PDF, o enlace) y conclusiones, con referencias APA 7.
 
@@ -56,15 +56,14 @@ Requisitos claros → menos defectos → menor costo de calidad → mayor rentab
 
 ### Rúbrica (total: 5.0 puntos)
 
-| Criterio | Puntaje máximo |
-|:--|:-:|
-| Claridad y precisión técnica en la especificación | 0.5 |
-| Definición y estructuración de requisitos | 1.3 |
-| Modelado UML y coherencia estructural | 1.3 |
-| Integración de criterios de aseguramiento de calidad | 1.4 |
-| Documento, redacción y referencias APA | 0.5 |
+| Criterio | Insuficiente | Regular | Bueno | Excelente |
+|:--|:-:|:-:|:-:|:-:|
+| Claridad y precisión técnica en la especificación | 0.2 | 0.3 | 0.4 | 0.5 |
+| Definición y estructuración de requisitos | 0.6 | 0.9 | 1.2 | 1.5 |
+| Modelado UML y coherencia estructural | 0.6 | 0.9 | 1.2 | 1.5 |
+| Integración de criterios de aseguramiento de calidad | 0.5 | 0.8 | 1.1 | 1.5 |
 
-*Si hay plagio total, se envía otra actividad o no se entrega, la calificación es 0.0 en todos los criterios. La V2 de la actividad hablaba de un "modelado digital 3D" y no pedía escenario base; la V3 corrige ambos puntos y es la vigente.*
+*Si hay plagio total, se envía otra actividad o no se entrega, la calificación es 0.0 en todos los criterios. El enunciado habla de "modelado digital 3D", pero las indicaciones piden una herramienta de modelado UML y diagramas UML; por eso se trabaja como modelado UML. El PDF menciona un "escenario asignado" sin darlo: lo define el docente. La redacción, la ortografía y las referencias APA no tienen un criterio propio, pero las indicaciones los exigen.*
 
 ## ✍️ Actividad sugerida en clase (propuesta)
 
