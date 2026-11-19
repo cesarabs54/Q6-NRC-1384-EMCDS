@@ -5,8 +5,7 @@ Los temas marcados como *propuesta* son sugerencias del docente y pueden ajustar
 
 ## Introducción
 
-Es la semana de cierre. Se integra lo visto: el aseguramiento de la calidad (QA) como función preventiva a lo largo del ciclo de vida, el marco de verificación y validación con el ciclo PDCA, el catálogo de técnicas y herramientas de QA, las métricas de interpretación y su integración en el pipeline de CI/CD. La práctica de pruebas en Java (los seis talleres) se trabaja en la [Semana 7](../Semana_7/Semana_7.md).
-
+Es la semana de cierre. Se integra lo visto: el aseguramiento de la calidad (QA) como función preventiva a lo largo del ciclo de vida, el marco de verificación y validación con el ciclo PDCA, el catálogo de técnicas y herramientas de QA, las métricas de interpretación y su integración en el pipeline de CI/CD.
 ## 🎯 Resultados de aprendizaje
 
 - Implementa el aseguramiento de la calidad en la construcción de software.
@@ -36,7 +35,6 @@ Apoyan la semana [Calidad_del_Backend.md](Calidad_del_Backend.md) (segunda medic
 
 ## ⚠️ Puntos a aclarar en clase
 
-- **Talleres.** Los seis talleres de pruebas en Java se movieron a la Semana 7 porque en esta semana no alcanza el tiempo para realizarlos. Los resultados "implementa" y "aplica" de esta semana se apoyan en esa práctica; falta decidir si se ajusta su redacción en el plan del curso.
 - **Nombres de las características.** Una presentación nombra las características como "funcionalidad, confiabilidad, eficiencia" (ISO/IEC 9126). Usar los nombres de ISO/IEC 25010 de la Semana 1: adecuación funcional, fiabilidad y eficiencia del desempeño.
 - **Densidad por KLOC.** Presentarla como métrica clásica y complementarla con las de la Semana 2.
 - **Proyecto real.** `Calidad_del_Backend.md` y los reportes de deuda técnica analizan un backend real (`backend-demo`); sirven de ejemplo, no son un entregable.
