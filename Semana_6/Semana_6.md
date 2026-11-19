@@ -32,8 +32,22 @@ Ninguna herramienta reemplaza a las demás ni a unos criterios de aceptación bi
 
 ## ⚠️ Puntos a aclarar en clase
 
-- **ISO/IEC 9126 y 25010.** El recurso básico de la actividad (Ávila, 2013) usa ISO/IEC 9126-1. La presentación usa su sucesora, ISO/IEC 25010; aclarar la correspondencia de nombres de las características.
-- **Densidad de defectos y complejidad.** Los umbrales de los casos (por ejemplo, complejidad ciclomática ≤ 10) son referencias del docente; el equipo debe calibrarlos para su contexto.
+- **ISO/IEC 9126 y 25010.** Ávila (2013) usa ISO/IEC 9126-1 (6 características); el curso usa su sucesora, ISO/IEC 25010:2011 (8). Correspondencia de nombres:
+
+  | # | ISO/IEC 9126-1 | ISO/IEC 25010:2011 | Cambio |
+  |:-:|:--|:--|:--|
+  | 1 | Funcionalidad | **Adecuación funcional** | Se renombra. |
+  | 2 | Eficiencia | **Eficiencia del desempeño** | Se renombra. |
+  | 3 | Fiabilidad | **Fiabilidad** | Se mantiene. |
+  | 4 | Usabilidad | **Usabilidad** | Se mantiene. |
+  | 5 | Mantenibilidad | **Mantenibilidad** | Se mantiene. |
+  | 6 | Portabilidad | **Portabilidad** | Se mantiene. |
+  | 7 | — | **Compatibilidad** | Es nueva. La interoperabilidad era subcaracterística de Funcionalidad. |
+  | 8 | — | **Seguridad** | Es nueva. Era subcaracterística de Funcionalidad. |
+
+  La revisión ISO/IEC 25010:2023 modifica el modelo; el curso trabaja con la versión de 2011.
+
+- **Umbrales de complejidad y deuda técnica.** Los umbrales de los casos (por ejemplo, complejidad ciclomática ≤ 10, convención de McCabe) son referencias del docente; el equipo debe calibrarlos para su contexto.
 
 ## 💬 Preguntas para detonar la discusión
 
